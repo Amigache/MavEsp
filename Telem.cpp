@@ -257,6 +257,30 @@ void Telem::armDisarm()
 
 }
 
+void Telem::request_distance_sensor(){
+    mavlink_message_t msg;
+    mavlink_command_long_t c;
+    
+    c.command = 511, //MAV_CMD_SET_MESSAGE_INTERVAL;
+    c.target_system = target_sysid;
+    c.target_component = target_compid;
+    c.confirmation = false;
+    c.param1 = MAVLINK_MSG_ID_DISTANCE_SENSOR; //132
+    c.param2 = 1000000;
+    c.param3 = 0;
+    c.param4 = 0;
+    c.param5 = 0;
+    c.param6 = 0;
+    c.param7 = 2;
+    
+    mavlink_msg_command_long_encode(system_id, component_id, &msg, &c);
+    
+    uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+    uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+
+    _MAVSerial->write(buf,len);
+}
+
 // Comprobamos estado del enlace
 void Telem::check_link()
 {

@@ -40,6 +40,7 @@ public:
   void armDisarm();
   void heartbeat();
   void requestStreams(uint8_t req_stream_id, uint16_t req_message_rate, uint8_t start_stop);
+  void request_distance_sensor();
   
   APdata_t APdata;
   boolean link;
