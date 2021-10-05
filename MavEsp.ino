@@ -14,7 +14,7 @@ int cond_flight_modes[FLIGHT_MODES_COUNT] = {
 };
 
 // Range filter 
-int rf_values_count = 0;    
+int ds_values_count = 0;    
 
 // Condition vars
 uint8_t cond_mode  = 0;
@@ -25,7 +25,12 @@ void setup() {
 
     // Serial Monitor ang Log
     Serial.begin(SERIAL_BAUD);
+
+    #ifndef DEBUG_MODE
+    Log.begin(LOG_LEVEL_SILENT, &Serial);
+    #else
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+    #endif
 
     // Serial Mavlink Begin
     mav.begin();
@@ -46,7 +51,10 @@ void loop() {
     }
 
     // Output
-    //Log.notice(F("Mode: %i Armed: %T Range Finder : %icms Cond Mode: %i Cond Armed: %i Cond Range Finder: %i Filter Count: %i"CR) , mav.APdata.custom_mode, mav.APdata.armed, mav.APdata.rangefinder, cond_mode, cond_armed, cond_alt, rf_values_count);
+    if(mav.link){
+      Log.notice(F("Mode: %i Armed: %T Range Finder : %icms Cond Mode: %i Cond Armed: %i Cond Range Finder: %i Filter Count: %i"CR) , mav.APdata.custom_mode, mav.APdata.armed, mav.APdata.distance_sensor, cond_mode, cond_armed, cond_alt, ds_values_count);
+    }
+
 }
 
 // --------------- Disparador segun msg recivido ---------------------- //
@@ -71,19 +79,19 @@ void msgRecivedCallback(uint8_t _msgid)
 
       break;
 
-    case MAVLINK_MSG_ID_RANGEFINDER:
+    case MAVLINK_MSG_ID_DISTANCE_SENSOR:
 
       // CHECK COND Alt
-      if(mav.APdata.rangefinder < COND_ALTITUDE){
-          if(rf_values_count >= RANGE_FILTER_COUNT){
+      if(mav.APdata.distance_sensor < COND_ALTITUDE){
+          if(ds_values_count >= DISTANCE_SENSOR_FILTER_COUNT){
             cond_alt = 1;
-            rf_values_count = RANGE_FILTER_COUNT;
+            ds_values_count = DISTANCE_SENSOR_FILTER_COUNT;
           }else{
-            rf_values_count++;
+            ds_values_count++;
           } 
       }else{
           cond_alt = 0;
-          rf_values_count = 0;
+          ds_values_count = 0;
       }
 
       break;
