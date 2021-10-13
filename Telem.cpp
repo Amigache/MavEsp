@@ -93,6 +93,15 @@ void Telem::run(void (*msgRecivedCallback)(uint8_t _msgid))
 
                         break;
 
+                    case MAVLINK_MSG_ID_EXTENDED_SYS_STATE: // #245: EXTENDED SYS STATE
+
+                        mavlink_extended_sys_state_t _extended_sys_state;
+                        mavlink_msg_extended_sys_state_decode(&msg, &_extended_sys_state);
+
+                        APdata.landed_state = _extended_sys_state.landed_state;
+
+                        break;                          
+
                 }
                 //  Ejecutamos función callback
                 msgRecivedCallback(msg.msgid);
@@ -168,6 +177,18 @@ void Telem::request_distance_sensor(){
     _MAVSerial->write(buf,len);
 }
 
+void Telem::request_extended_sys_state()
+{
+    mavlink_message_t msg;
+    uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+
+    mavlink_msg_command_long_pack(system_id, component_id, &msg, target_sysid, target_compid,
+        MAV_CMD_SET_MESSAGE_INTERVAL, 0, MAVLINK_MSG_ID_EXTENDED_SYS_STATE , EXTENDED_SYS_STATE_INTERVAL, 0, 0, 0, 0, 0);
+    uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+
+    _MAVSerial->write(buf, len);
+}
+
 // Functions
 
 void Telem::check_link()
@@ -193,6 +214,9 @@ void Telem::check_link()
 
         // Solicitamos sensor de distancia
         request_distance_sensor();
+
+        // Solicitamos extended sys state
+        request_extended_sys_state();
 
     }
 }

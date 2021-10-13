@@ -10,6 +10,7 @@ typedef struct
   uint8_t base_mode;
   boolean armed;
   uint16_t distance_sensor; 
+  uint8_t landed_state;
 } APdata_t;
 
 class Telem
@@ -25,6 +26,7 @@ public:
   void heartbeat();
   void request_data_streams(uint8_t req_stream_id, uint16_t req_message_rate, uint8_t start_stop);
   void request_distance_sensor();
+  void request_extended_sys_state();
   
   APdata_t APdata;
   boolean link;
